@@ -12,6 +12,7 @@ import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
+import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.text.Text;
@@ -37,19 +38,15 @@ public class Main implements CommandExecutor {
 				.permission("chatcolorsec.colors.base")
 				.executor(this).build();
 		Sponge.getCommandManager().register(this, chatcolor, "color");
-		Sponge.getEventManager().registerListeners(this, this);
+		//Sponge.getEventManager().registerListeners(this, this);
 	}
 
 	@Listener
 	public void onChat(SendChannelMessageEvent event) {
+		if (event.getChannel() == null) return;
+		
 		boolean chatcolorbool = MetaData(UUID.fromString(event.getSender().getIdentifier())).getMeta().containsKey("chat-color");
 		
-		if (chatcolorbool == false) {
-			event.addTag("{color}", color2(event.getChannel().getColor()));
-			MessageChannel.TO_ALL.send(Text.of("test3"));
-			return;
-		}
-			
 		if (chatcolorbool == true) {
 			String chatbold = MetaData(UUID.fromString(event.getSender().getIdentifier())).getMeta().get("chat-bold");
 			String chatcolor = MetaData(UUID.fromString(event.getSender().getIdentifier())).getMeta().get("chat-color");
@@ -60,6 +57,9 @@ public class Main implements CommandExecutor {
 			if (chatbold.equals("true")) {
 			event.addTag("{color}", "&" + chatcolor + "&l");
 			}
+			return;
+		} else {
+			event.addTag("{color}", color2(event.getChannel().getColor()));
 			return;
 		}
 	}
@@ -77,7 +77,6 @@ public class Main implements CommandExecutor {
 		return user.getCachedData().getMetaData(contexts);
 	}
 
-	@Override
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
 		if (!args.hasAny("colors")) {
 			Sponge.getCommandManager().process(Sponge.getServer().getConsole(),
